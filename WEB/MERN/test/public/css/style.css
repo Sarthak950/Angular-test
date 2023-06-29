@@ -1,0 +1,21 @@
+li{
+    list-style: none;
+    display: inline-block;
+    margin: 0 10px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.5s ease;
+}
+
+body{
+    background: black;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    color: whitesmoke;
+    margin: 0;
+    padding: 0;
+}

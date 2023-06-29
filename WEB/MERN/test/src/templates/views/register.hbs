@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/style.css" rel="stylesheet">
+    </head>
+    <body>
+        {{>navbar}}
+        <h1>this is the register page</h1>
+        <form action="/register" method="POST">
+
+            <!--for both first and last name sepreate -->
+            <label for="fname">First Name</label>
+            <input type="text" id="fname" name="firstname" placeholder="Your name.."><br>
+
+            <label for="lname">Last Name</label>
+            <input type="text" id="lname" name="lastname" placeholder="Your last name.."><br>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Your password.."><br>
+             <!-- re enter the pass  -->
+            <label for="password">Re-enter Password</label>
+            <input type="password" id="password" name="cpassword" placeholder="Your password.."><br>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Your email..">
+            <br>
+        <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" placeholder="Your phone..">
+            <br>
+            <!-- for the age-->
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" placeholder="Your age.."><br>
+            <!-- for gender-->
+            <input type="radio" name="gender" value="male"><span>male</span>
+            <input type="radio" name="gender" value="female"><span>female</span>
+
+            <br>
+            <input type="submit" value="Register">
+        </form>
+    </body>
+</html>

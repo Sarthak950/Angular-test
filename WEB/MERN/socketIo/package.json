@@ -1,0 +1,17 @@
+{
+  "name": "socketio",
+  "version": "1.0.0",
+  "description": "test for a chat app",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run app",
+    "server": "nodemon server/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.2",
+    "ws": "^8.13.0"
+  }
+}

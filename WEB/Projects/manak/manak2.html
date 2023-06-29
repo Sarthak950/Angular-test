@@ -1,0 +1,739 @@
+<canvas id="canvas" style="position:fixed; min-height: 100vh; min-width:100vw; z-index: -10000; top:0px; left:0; overflow: hidden;"> </canvas>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+<script  type="module">
+// Tool: Extend function to merge 2 objects
+var objExtend = function(obj1, obj2) {
+var extended = {};
+var prop;
+for (prop in obj1) {
+if (Object.prototype.hasOwnProperty.call(obj1, prop)) {
+extended[prop] = obj1[prop];
+}
+}
+for (prop in obj2) {
+if (Object.prototype.hasOwnProperty.call(obj2, prop)) {
+extended[prop] = obj2[prop];
+}
+}
+return extended;
+};
+var easing = {
+easeInCubic: function(x, t, b, c, d) {
+return c * (t /= d) * t * t + b;
+},
+easeOutCubic: function(x, t, b, c, d) {
+return c * ((t = t / d - 1) * t * t + 1) + b;
+},
+easeInOutCubic: function(x, t, b, c, d) {
+if ((t /= d / 2) < 1) return c / 2 * t * t * t + b;
+return c / 2 * ((t -= 2) * t * t + 2) + b;
+}
+};
+// Tool: standardizing requestAnimFrame
+window.requestAnimFrame = (function() {
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function(callback) {
+window.setTimeout(callback, 1000 / 60);
+};
+})();
+// Tool: standardizing cancelRequestAnimFrame
+window.cancelRequestAnimFrame = (function() {
+return window.cancelAnimationFrame ||
+window.webkitCancelRequestAnimationFrame ||
+window.mozCancelRequestAnimationFrame ||
+window.oCancelRequestAnimationFrame ||
+window.msCancelRequestAnimationFrame ||
+clearTimeout;
+})();    
+var particleJS = function(options) {
+var options = options || {};
+var ps = this;
+var startTime;
+var defaults = {
+numParticles: 10,
+bleed: 10,
+time: 0,
+mouseX: 0,
+mouseY: 0
+};
+ps.particles = [];
+ps.canvas = {
+dom: options.canvasEl || document.getElementById('canvas')
+}
+ps.canvas.ctx = ps.canvas.dom.getContext("2d");
+ps.canvas.width = ps.canvas.dom.offsetWidth;
+ps.canvas.height = ps.canvas.dom.offsetHeight;
+ps.settings = objExtend(defaults, options);
+ps.fn = {
+main: {
+init: function(args) {
+startTime = Date.now();
+ps.fn.canvas.events();
+ps.fn.canvas.resize();
+ps.fn.canvas.update();
+},
+updateTime: function() {
+ps.settings.time = Date.now() - startTime;
+}
+},
+canvas: {
+events: function(args) {
+window.addEventListener('mousemove', function(e) {
+if (ps.canvas.dom == window) {
+var pos_x = e.clientX,
+pos_y = e.clientY;
+} else {
+var pos_x =  e.clientX,
+pos_y = e.clientY;
+}
+ps.settings.mouseX = pos_x;
+ps.settings.mouseY = pos_y;
+ps.fn.particles.renderFunctions.linkCursor.enabled = true;
+});
+wiwndow.addEventListener('mouseleave', function(e) {
+ps.fn.particles.renderFunctions.linkCursor.enabled = false;
+});
+window.addEventListener('resize', function() {
+ps.fn.canvas.resize();
+});
+},
+resize: function() {
+ps.canvas.width = ps.canvas.dom.offsetWidth;
+ps.canvas.height = ps.canvas.dom.offsetHeight;
+ps.canvas.dom.width = ps.canvas.width;
+ps.canvas.dom.height = ps.canvas.height;
+},
+clear: function() {
+ps.canvas.ctx.clearRect(0, 0, ps.canvas.width, ps.canvas.height);
+},
+update: function() {
+ps.fn.main.updateTime();
+ps.fn.particles.update();
+ps.fn.canvas.clear();
+ps.fn.particles.render();
+ps.animFrame = requestAnimFrame(ps.fn.canvas.update);
+}
+},
+particles: {
+create: function(args) {
+var args = args || {};
+var p;
+var _defaults = {
+position: {
+x: ps.canvas.width * Math.random(),
+y: ps.canvas.height * Math.random()
+},
+velocity: {
+current: 0,
+max: 1 * Math.random() + 1
+},
+acceleration: 0.04,
+alpha: 1,
+angle: 360 * Math.random(),
+radius: 3,
+color: "#000000"
+};
+args.options = args.options || {};
+p = objExtend(_defaults, args.options);
+return p;
+},
+updateFunctions: {
+vectorMove: {
+enabled: true,
+tools: {
+slowStop: function(args){
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+}
+}
+},
+call: function(p) {
+p.position.x += p.velocity.current * Math.cos(p.angle * Math.PI / 180);
+p.position.y += p.velocity.current * Math.sin(p.angle * Math.PI / 180);
+if(p.velocity.current < p.velocity.max){
+p.velocity.current += p.acceleration;
+}else{
+p.velocity.current = p.velocity.max;
+}
+}
+},
+swirls: {
+enabled: false,
+call: function(p) {
+p.angle += Math.sin(ps.settings.time / 1000) * 10;
+}
+},
+checkBounds: {
+enabled: true,
+call: function(p) {
+// reset position if off screen.
+if (p.position.x > ps.canvas.width + (p.radius * 2) + ps.settings.bleed) {
+p.position.x = -(p.radius * 2) - ps.settings.bleed;
+} else if (p.position.x < -(p.radius * 2) - ps.settings.bleed) {
+p.position.x = ps.canvas.width + (p.radius * 2) + ps.settings.bleed;
+}
+if (p.position.y > ps.canvas.height + (p.radius * 2) + ps.settings.bleed) {
+p.position.y = -(p.radius * 2) - ps.settings.bleed;
+} else if (p.position.y < -(p.radius * 2) - ps.settings.bleed) {
+p.position.y = ps.canvas.height + (p.radius * 2) + ps.settings.bleed;
+}
+}
+},
+slowDown: {
+enabled: false,
+tools: {
+checkMoving: function() {
+var _stillMoving = false;
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+if (_p.velocity > 0) {
+_stillMoving = true;
+}
+}
+return _stillMoving;
+}
+},
+call: function(p) {
+if (p.velocity > 0) {
+p.velocity -= p.acceleration;
+} else {
+p.velocity = 0;
+if (!ps.fn.particles.updateFunctions.slowDown.tools.checkMoving()) {
+ps.fn.particles.updateFunctions.vectorMove.enabled = false;
+ps.fn.particles.updateFunctions.slowDown.enabled = false;
+console.log('stopped');
+}
+}
+}
+},
+circular: {
+enabled: false,
+call: function(p) {
+var centerX = ps.canvas.width / 2;
+var centerY = ps.canvas.height / 2;
+var dx = p.position.x - centerX,
+dy = p.position.y - centerY,
+dist = Math.sqrt(dx * dx + dy * dy);
+var _angle = Math.atan2(p.position.y - centerY, p.position.x - centerX) * 180 / Math.PI;
+_angle += 0.15;
+var newX = centerX + dist * Math.cos(_angle * Math.PI / 180);
+var newY = centerY + dist * Math.sin(_angle * Math.PI / 180);
+p.position.x = newX;
+p.position.y = newY;
+}
+},
+},
+renderFunctions: {
+renderPoints: {
+enabled: true,
+call: function(p) {
+ps.canvas.ctx.save();
+ps.canvas.ctx.fillStyle = p.color;
+ps.canvas.ctx.globalAlpha = p.alpha;
+ps.canvas.ctx.beginPath();
+ps.canvas.ctx.arc(p.position.x, p.position.y, p.radius, 0, Math.PI * 2);
+ps.canvas.ctx.fill();
+ps.canvas.ctx.restore();
+}
+},
+renderLines: {
+enabled: true,
+tools: {
+lineDistance: 200,
+lineOpacity: 1,
+linkLine: function(p1, p2) {
+var dx = p1.position.x - p2.position.x,
+dy = p1.position.y - p2.position.y,
+dist = Math.sqrt(dx * dx + dy * dy);
+/* draw a line between p1 and p2 if the distance between them is under the config distance */
+if (dist <= ps.fn.particles.renderFunctions.renderLines.tools.lineDistance) {
+var opacity_line = ps.fn.particles.renderFunctions.renderLines.tools.lineOpacity - (dist / (1 / ps.fn.particles.renderFunctions.renderLines.tools.lineOpacity)) / ps.fn.particles.renderFunctions.renderLines.tools.lineDistance;
+var width_line = p1.radius - (dist / (1 / p1.radius)) / ps.fn.particles.renderFunctions.renderLines.tools.lineDistance;
+if (width_line < 0) {
+width_line = 0;
+}
+if (opacity_line > 0) {
+/* style */
+ps.canvas.ctx.strokeStyle = 'rgba(0,0,0,' + opacity_line + ')';
+ps.canvas.ctx.lineWidth = width_line;
+/* path */
+ps.canvas.ctx.beginPath();
+ps.canvas.ctx.moveTo(p1.position.x, p1.position.y);
+ps.canvas.ctx.lineTo(p2.position.x, p2.position.y);
+ps.canvas.ctx.stroke();
+ps.canvas.ctx.closePath();
+}
+}
+}
+},
+call: function(p) {
+for (var i = 0; i < ps.particles.length; i++) {
+if (p !== ps.particles[i]) {
+ps.fn.particles.renderFunctions.renderLines.tools.linkLine(p, ps.particles[i]);
+}
+}
+}
+},
+linkCursor: {
+enabled: false,
+tools: {
+lineDistance: 200,
+lineOpacity: 1,
+linkLine: function(p) {
+var dx = p.position.x - ps.settings.mouseX,
+dy = p.position.y - ps.settings.mouseY,
+dist = Math.sqrt(dx * dx + dy * dy);
+/* draw a line between p1 and p2 if the distance between them is under the config distance */
+if (dist <= ps.fn.particles.renderFunctions.linkCursor.tools.lineDistance) {
+var opacity_line = ps.fn.particles.renderFunctions.linkCursor.tools.lineOpacity - (dist / (1 / ps.fn.particles.renderFunctions.linkCursor.tools.lineOpacity)) / ps.fn.particles.renderFunctions.linkCursor.tools.lineDistance;
+var width_line = p.radius - (dist / (1 / p.radius)) / ps.fn.particles.renderFunctions.linkCursor.tools.lineDistance;
+if (width_line < 0) {
+width_line = 0;
+}
+if (opacity_line > 0) {
+/* style */
+ps.canvas.ctx.strokeStyle = 'rgba(0,0,0,' + opacity_line + ')';
+ps.canvas.ctx.lineWidth = width_line;
+/* path */
+ps.canvas.ctx.beginPath();
+ps.canvas.ctx.moveTo(p.position.x, p.position.y);
+ps.canvas.ctx.lineTo(ps.settings.mouseX, ps.settings.mouseY);
+ps.canvas.ctx.stroke();
+ps.canvas.ctx.closePath();
+}
+}
+}
+},
+call: function(p) {
+ps.fn.particles.renderFunctions.linkCursor.tools.linkLine(p);
+}
+}
+},
+update: function(args) {
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+Object.keys(ps.fn.particles.updateFunctions).map(function(objectKey, index) {
+var _func = ps.fn.particles.updateFunctions[objectKey];
+if (_func.enabled) {
+_func.call(_p);
+}
+});
+}
+},
+render: function(args) {
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+Object.keys(ps.fn.particles.renderFunctions).map(function(objectKey, index) {
+var _func = ps.fn.particles.renderFunctions[objectKey];
+if (_func.enabled) {
+_func.call(_p);
+}
+});
+}
+},
+add: function(args) {
+args.num = args.num || 1;
+for (var i = 0; i < args.num; i++) {
+var p = new ps.fn.particles.create();
+ps.particles.push(p);
+}
+}
+}
+};
+ps.fn.particles.add({ num: ps.settings.numParticles });
+ps.fn.main.init();
+return ps;
+};
+</script>
+<script type="text/javascript">
+var particleJS = function(options) {
+var options = options || {};
+var ps = this;
+var startTime;
+var defaults = {
+numParticles: 25,
+bleed: 10,
+time: 0,
+mouseX: 0,
+mouseY: 0
+};
+ps.particles = [];
+ps.canvas = {
+dom: options.canvasEl || document.getElementById('canvas')
+}    
+// Tool: Extend function to merge 2 objects
+var objExtend = function(obj1, obj2) {
+var extended = {};
+var prop;
+for (prop in obj1) {
+if (Object.prototype.hasOwnProperty.call(obj1, prop)) {
+extended[prop] = obj1[prop];
+}
+}
+for (prop in obj2) {
+if (Object.prototype.hasOwnProperty.call(obj2, prop)) {
+extended[prop] = obj2[prop];
+}
+}
+return extended;
+};
+ps.canvas.ctx = ps.canvas.dom.getContext("2d");
+ps.canvas.width = ps.canvas.dom.offsetWidth;
+ps.canvas.height = ps.canvas.dom.offsetHeight;
+ps.settings = objExtend(defaults, options);
+ps.fn = {
+main: {
+init: function(args) {
+startTime = Date.now();
+ps.fn.canvas.events();
+ps.fn.canvas.resize();
+ps.fn.canvas.update();
+},
+updateTime: function() {
+ps.settings.time = Date.now() - startTime;
+}
+},
+canvas: {
+events: function(args) {
+window.addEventListener('mousemove', function(e) {
+if (ps.canvas.dom == window) {
+var pos_x = e.clientX,
+pos_y = e.clientY;
+} else {
+var pos_x = e.offsetX || e.clientX,
+pos_y = e.offsetY || e.clientY;
+}
+ps.settings.mouseX = pos_x;
+ps.settings.mouseY = pos_y;
+ps.fn.particles.renderFunctions.linkCursor.enabled = true;
+});
+window.addEventListener('mouseleave', function(e) {
+ps.fn.particles.renderFunctions.linkCursor.enabled = false;
+});
+window.addEventListener('resize', function() {
+ps.fn.canvas.resize();
+});
+},
+resize: function() {
+ps.canvas.width = ps.canvas.dom.offsetWidth;
+ps.canvas.height = ps.canvas.dom.offsetHeight;
+ps.canvas.dom.width = ps.canvas.width;
+ps.canvas.dom.height = ps.canvas.height;
+},
+clear: function() {
+ps.canvas.ctx.clearRect(0, 0, ps.canvas.width, ps.canvas.height);
+},
+update: function() {
+ps.fn.main.updateTime();
+ps.fn.particles.update();
+ps.fn.canvas.clear();
+ps.fn.particles.render();
+ps.animFrame = requestAnimationFrame(ps.fn.canvas.update);
+}
+},
+particles: {
+create: function(args) {
+var args = args || {};
+var p;
+var _defaults = {
+position: {
+x: ps.canvas.width * Math.random(),
+y: ps.canvas.height * Math.random()
+},
+velocity: {
+current: 0,
+max: 1 * Math.random() + 1
+},
+acceleration: 0.04,
+alpha: 1,
+angle: 360 * Math.random(),
+radius: 3,
+color: "#000000"
+};
+args.options = args.options || {};
+p = objExtend(_defaults, args.options);
+return p;
+},
+updateFunctions: {
+vectorMove: {
+enabled: true,
+tools: {
+slowStop: function(args){
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+}
+}
+},
+call: function(p) {
+p.position.x += p.velocity.current * Math.cos(p.angle * Math.PI / 180);
+p.position.y += p.velocity.current * Math.sin(p.angle * Math.PI / 180);
+if(p.velocity.current < p.velocity.max){
+p.velocity.current += p.acceleration;
+}else{
+p.velocity.current = p.velocity.max;
+}
+}
+},
+swirls: {
+enabled: false,
+call: function(p) {
+p.angle += Math.sin(ps.settings.time / 1000) * 10;
+}
+},
+checkBounds: {
+enabled: true,
+call: function(p) {
+// reset position if off screen.
+if (p.position.x > ps.canvas.width + (p.radius * 2) + ps.settings.bleed) {
+p.position.x = -(p.radius * 2) - ps.settings.bleed;
+} else if (p.position.x < -(p.radius * 2) - ps.settings.bleed) {
+p.position.x = ps.canvas.width + (p.radius * 2) + ps.settings.bleed;
+}
+if (p.position.y > ps.canvas.height + (p.radius * 2) + ps.settings.bleed) {
+p.position.y = -(p.radius * 2) - ps.settings.bleed;
+} else if (p.position.y < -(p.radius * 2) - ps.settings.bleed) {
+p.position.y = ps.canvas.height + (p.radius * 2) + ps.settings.bleed;
+}
+}
+},
+slowDown: {
+enabled: false,
+tools: {
+checkMoving: function() {
+var _stillMoving = false;
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+if (_p.velocity > 0) {
+_stillMoving = true;
+}
+}
+return _stillMoving;
+}
+},
+call: function(p) {
+if (p.velocity > 0) {
+p.velocity -= p.acceleration;
+} else {
+p.velocity = 0;
+if (!ps.fn.particles.updateFunctions.slowDown.tools.checkMoving()) {
+ps.fn.particles.updateFunctions.vectorMove.enabled = false;
+ps.fn.particles.updateFunctions.slowDown.enabled = false;
+console.log('stopped');
+}
+}
+}
+},
+circular: {
+enabled: false,
+call: function(p) {
+var centerX = ps.canvas.width / 2;
+var centerY = ps.canvas.height / 2;
+var dx = p.position.x - centerX,
+dy = p.position.y - centerY,
+dist = Math.sqrt(dx * dx + dy * dy);
+var _angle = Math.atan2(p.position.y - centerY, p.position.x - centerX) * 180 / Math.PI;    
+_angle += 0.15;    
+var newX = centerX + dist * Math.cos(_angle * Math.PI / 180);
+var newY = centerY + dist * Math.sin(_angle * Math.PI / 180);
+p.position.x = newX;
+p.position.y = newY;
+}
+},
+},
+renderFunctions: {
+renderPoints: {
+enabled: true,
+call: function(p) {
+ps.canvas.ctx.save();
+ps.canvas.ctx.fillStyle = p.color;
+ps.canvas.ctx.globalAlpha = p.alpha;
+ps.canvas.ctx.beginPath();
+ps.canvas.ctx.arc(p.position.x, p.position.y, p.radius, 0, Math.PI * 2);
+ps.canvas.ctx.fill();
+ps.canvas.ctx.restore();
+}
+},
+renderLines: {
+enabled: true,
+tools: {
+lineDistance: 200,
+lineOpacity: 1,
+linkLine: function(p1, p2) {
+var dx = p1.position.x - p2.position.x,
+dy = p1.position.y - p2.position.y,
+dist = Math.sqrt(dx * dx + dy * dy);    
+/* draw a line between p1 and p2 if the distance between them is under the config distance */
+if (dist <= ps.fn.particles.renderFunctions.renderLines.tools.lineDistance) {
+var opacity_line = ps.fn.particles.renderFunctions.renderLines.tools.lineOpacity - (dist / (1 / ps.fn.particles.renderFunctions.renderLines.tools.lineOpacity)) / ps.fn.particles.renderFunctions.renderLines.tools.lineDistance;
+var width_line = p1.radius - (dist / (1 / p1.radius)) / ps.fn.particles.renderFunctions.renderLines.tools.lineDistance;
+if (width_line < 0) {
+width_line = 0;
+}
+if (opacity_line > 0) {
+/* style */
+ps.canvas.ctx.strokeStyle = 'rgba(0,0,0,' + opacity_line + ')';
+ps.canvas.ctx.lineWidth = width_line;
+/* path */
+ps.canvas.ctx.beginPath();
+ps.canvas.ctx.moveTo(p1.position.x, p1.position.y);
+ps.canvas.ctx.lineTo(p2.position.x, p2.position.y);
+ps.canvas.ctx.stroke();
+ps.canvas.ctx.closePath();
+}
+}    
+}
+},
+call: function(p) {
+for (var i = 0; i < ps.particles.length; i++) {
+if (p !== ps.particles[i]) {
+ps.fn.particles.renderFunctions.renderLines.tools.linkLine(p, ps.particles[i]);
+}
+}
+}
+},
+linkCursor: {
+enabled: false,
+tools: {
+lineDistance: 200,
+lineOpacity: 1,
+linkLine: function(p) {
+var dx = p.position.x - ps.settings.mouseX,
+dy = p.position.y - ps.settings.mouseY,
+dist = Math.sqrt(dx * dx + dy * dy);
+/* draw a line between p1 and p2 if the distance between them is under the config distance */
+if (dist <= ps.fn.particles.renderFunctions.linkCursor.tools.lineDistance) {
+var opacity_line = ps.fn.particles.renderFunctions.linkCursor.tools.lineOpacity - (dist / (1 / ps.fn.particles.renderFunctions.linkCursor.tools.lineOpacity)) / ps.fn.particles.renderFunctions.linkCursor.tools.lineDistance;
+var width_line = p.radius - (dist / (1 / p.radius)) / ps.fn.particles.renderFunctions.linkCursor.tools.lineDistance;
+if (width_line < 0) {
+width_line = 0;
+}
+if (opacity_line > 0) {
+/* style */
+ps.canvas.ctx.strokeStyle = 'rgba(0,0,0,' + opacity_line + ')';
+ps.canvas.ctx.lineWidth = width_line;
+/* path */
+ps.canvas.ctx.beginPath();
+ps.canvas.ctx.moveTo(p.position.x, p.position.y);
+ps.canvas.ctx.lineTo(ps.settings.mouseX, ps.settings.mouseY);
+ps.canvas.ctx.stroke();
+ps.canvas.ctx.closePath();    
+}
+}    
+}
+},
+call: function(p) {
+ps.fn.particles.renderFunctions.linkCursor.tools.linkLine(p);
+}
+}
+},
+update: function(args) {
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+Object.keys(ps.fn.particles.updateFunctions).map(function(objectKey, index) {
+var _func = ps.fn.particles.updateFunctions[objectKey];
+if (_func.enabled) {
+_func.call(_p);
+}
+});
+}
+},
+render: function(args) {
+for (var i = 0; i < ps.particles.length; i++) {
+var _p = ps.particles[i];
+Object.keys(ps.fn.particles.renderFunctions).map(function(objectKey, index) {
+var _func = ps.fn.particles.renderFunctions[objectKey];
+if (_func.enabled) {
+_func.call(_p);
+}
+});
+}
+},
+add: function(args) {
+args.num = args.num || 1;
+for (var i = 0; i < args.num; i++) {
+var p = new ps.fn.particles.create();
+ps.particles.push(p);
+}
+}
+}
+};
+ps.fn.particles.add({ num: ps.settings.numParticles });
+ps.fn.main.init();
+return ps;
+};    
+var newPs = new particleJS();                
+// Extended
+newPs.fn.particles.updateFunctions.moveTo = {
+enabled: false,
+start: function() {
+newPs.fn.particles.updateFunctions.moveTo.events.started();
+for (var i = 0; i < newPs.particles.length; i++) {
+var _p = newPs.particles[i];
+_p.nextPosition = {
+x: newPs.canvas.width * Math.random(),
+y: newPs.canvas.height * Math.random()
+};
+_p.prevPosition = {
+x: _p.position.x,
+y: _p.position.y
+};
+_p.moveTo = true;
+_p.duration = 1000 * Math.random() + 1500;
+_p.timestamp = Date.now();
+}
+},
+events: {
+started: function() {
+newPs.fn.particles.updateFunctions.moveTo.enabled = true;
+newPs.fn.particles.updateFunctions.vectorMove.enabled = false;
+},
+completed: function() {
+//newPs.fn.particles.updateFunctions.vectorMove.enabled = true;
+newPs.fn.particles.updateFunctions.moveTo.enabled = false;
+}
+},
+tools: {
+checkMove: function() {
+var _move = false;
+for (var i = 0; i < newPs.particles.length; i++) {
+var _p = newPs.particles[i];
+if (_p.moveTo) {
+_move = true;
+}
+}
+return _move;
+}
+},
+call: function(p) {    
+var currentTime = Date.now() - p.timestamp;
+var totalTime = p.duration;        
+var startValueX = p.prevPosition.x;
+var changeInValueX = p.nextPosition.x - p.prevPosition.x;    
+var startValueY = p.prevPosition.y;
+var changeInValueY = p.nextPosition.y - p.prevPosition.y;    
+if (currentTime < totalTime) {
+p.position.x = easing.easeInOutCubic(0, currentTime, startValueX, changeInValueX, totalTime);
+p.position.y = easing.easeInOutCubic(0, currentTime, startValueY, changeInValueY, totalTime);
+} else {
+p.moveTo = false;
+}
+if (!newPs.fn.particles.updateFunctions.moveTo.tools.checkMove()) {
+newPs.fn.particles.updateFunctions.moveTo.events.completed();
+}    
+}
+}        
+$(document).ready(function() {
+$('#moveTo').on('click', function(event) {
+event.preventDefault();
+newPs.fn.particles.updateFunctions.moveTo.start();
+});
+$('#vectorMove').on('click', function(event) {
+event.preventDefault();
+newPs.fn.particles.updateFunctions.vectorMove.enabled = true;
+});
+});
+</script>

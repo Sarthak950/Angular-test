@@ -1,0 +1,74 @@
+body {
+  height: 100vh;
+  font-family: "Bebas Neue";
+}
+
+* {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+section {
+  height: 100vh;
+  padding: 3em;
+}
+section h1 {
+  font-size: 5rem;
+}
+
+.overlay {
+  background-color: black;
+  color: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  -webkit-clip-path: circle(100px at 50% 50%);
+          clip-path: circle(100px at 50% 50%);
+  -webkit-clip-path: circle(100px at var(--x, 50%) var(--y, 50%));
+          clip-path: circle(100px at var(--x, 50%) var(--y, 50%));
+  -webkit-transition: -webkit-clip-path 60ms ease-in-out;
+  transition: -webkit-clip-path 60ms ease-in-out;
+  transition: clip-path 60ms ease-in-out;
+  transition: clip-path 60ms ease-in-out, -webkit-clip-path 60ms ease-in-out;
+}
+
+span {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: black;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  cursor: pointer;
+}
+
+svg {
+  margin: 1rem;
+  fill: white;
+}
+
+.is-open {
+  -webkit-clip-path: circle(200% at 100%);
+          clip-path: circle(200% at 100%);
+  -webkit-transition: -webkit-clip-path 1.3s ease-in-out;
+  transition: -webkit-clip-path 1.3s ease-in-out;
+  transition: clip-path 1.3s ease-in-out;
+  transition: clip-path 1.3s ease-in-out, -webkit-clip-path 1.3s ease-in-out;
+  -webkit-transition-timing-function: cubic-bezier(1, -0.01, 0.01, 0.99);
+          transition-timing-function: cubic-bezier(1, -0.01, 0.01, 0.99);
+}
+
+.black {
+  padding-top: 0.1em;
+  padding-left: 0.1em;
+}
+
+.hover-btn2 {
+  background-color: white;
+  margin-left: 0.6em;
+}
+.hover-btn2 svg {
+  fill: black;
+}
