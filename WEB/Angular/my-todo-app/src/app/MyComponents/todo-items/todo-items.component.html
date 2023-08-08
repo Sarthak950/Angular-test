@@ -1,0 +1,7 @@
+<h3 class="mt-5" [ngClass]="{'strike': !todo.active}" >{{todo.sno}}-{{todo.title}} </h3>
+<p>{{todo.desc}}</p>
+<div class="form-check">
+    <input type="checkbox" class="form-check-input"  (click)="onCheckBoxClick(todo)">
+    <label class="form-check-label" for="exampleCheck1">Togle Done</label>
+</div>
+<button class="btn btn-danger" (click)="onClick(todo)">Delete</button>
