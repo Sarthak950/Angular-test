@@ -37,12 +37,15 @@ export class TodosComponent {
         this.todos.push(todo);
         localStorage.setItem("Sarthak'sTodo", JSON.stringify(this.todos))
     }
-
-    todoCheckBox(todo: Todo){
-        console.log(todo,)
-        console.log('fucke')
-        // console.log(todo)
-        // localStorage.setItem("Sarthak'sTodo", JSON.stringify(this.todos))
+    
+    saveCheckBox(todo: Todo){
+        this.todos.forEach ((element, index) => {
+            if(element.sno == todo.sno){
+                this.todos[index].active = !this.todos[index].active
+            }
+        });
+        localStorage.setItem("Sarthak'sTodo", JSON.stringify(this.todos))
+        console.log(`event listened on ${todo.sno}`)
     }
 
 

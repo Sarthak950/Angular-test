@@ -22,6 +22,7 @@ export class TodoItemsComponent {
     }
 
     onCheckBoxClick(todo: Todo){
+        console.log('event is firing on ' + todo.sno )
         // console.log(todo)
         this.todoCheckBox.emit(todo)
         // this.todo.active = !this.todo.active
